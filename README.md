@@ -65,7 +65,17 @@ once, by hand:
    to scope more tightly - see the code comments in `src/zohoMail.js` for
    which calls need which). Pick a short expiry, then **CREATE** and copy
    the generated `code` immediately.
-3. Exchange it for tokens before it expires:
+3. Exchange it for tokens before it expires, and look up your account id,
+   in one step - run `scripts/get-zoho-tokens.ps1` (PowerShell) from this
+   directory:
+   ```
+   .\scripts\get-zoho-tokens.ps1
+   ```
+   It prompts for the Client ID/Secret/code interactively (nothing typed
+   into a chat or written to a file), exchanges them, and prints
+   `ZOHO_REFRESH_TOKEN`, `ZOHO_ACCOUNT_ID`, and `ZOHO_FROM_ADDRESS` -
+   the answer to "Finding your accountId" below is folded into this script.
+   If you'd rather do it by hand, the equivalent request is:
    ```
    POST https://accounts.zoho.com/oauth/v2/token
      client_id=...
@@ -77,16 +87,19 @@ once, by hand:
    `ZOHO_REFRESH_TOKEN`. `access_token` is short-lived; the script fetches
    its own fresh one from `refresh_token` on every run, you don't need to
    save it.
-4. If your account isn't on the US datacenter, use the matching
-   `accounts.zoho.<tld>` host for step 3 and set `ZOHO_ACCOUNTS_BASE_URL`/
-   `ZOHO_MAIL_BASE_URL` accordingly (see `.env.example`).
+4. If your account isn't on the US datacenter, pass
+   `-AccountsHost accounts.zoho.<tld> -MailHost mail.zoho.<tld>` to the
+   script (or use the matching hosts by hand), and set
+   `ZOHO_ACCOUNTS_BASE_URL`/`ZOHO_MAIL_BASE_URL` in `.env` accordingly
+   (see `.env.example`).
 
 ### 2. Finding your `accountId` and setting `ZOHO_FROM_ADDRESS`
 
-Call the "Fetch a Specific User Details" endpoint (linked from
-[Zoho Mail's Getting Started guide](https://www.zoho.com/mail/help/api/getting-started-with-api.html))
-with your access token to get the numeric account id. `ZOHO_FROM_ADDRESS`
-is the mailbox address that account owns - replies are sent from it.
+Already printed by `scripts/get-zoho-tokens.ps1` above. By hand: call the
+Zoho Mail accounts endpoint (`GET https://mail.zoho.com/api/accounts`,
+`Authorization: Zoho-oauthtoken <access_token>`) - the numeric `accountId`
+field is `ZOHO_ACCOUNT_ID`, and `mailboxAddress` on the same record is
+`ZOHO_FROM_ADDRESS`.
 
 ### 3. Copy `.env.example` to `.env` and fill it in
 
