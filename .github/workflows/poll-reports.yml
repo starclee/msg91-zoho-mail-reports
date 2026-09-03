@@ -5,7 +5,7 @@ on:
     # Every 10 minutes, same cadence as CONFIG.pollIntervalMinutes in the
     # original ../Code.gs. GitHub's schedule trigger is best-effort, not
     # exact - under load a run can start a few minutes late.
-    - cron: "*/10 * * * *"
+    - cron: "*/5 * * * *"
   # Lets you trigger a run by hand from the Actions tab, useful for testing.
   workflow_dispatch:
 
