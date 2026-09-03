@@ -1,0 +1,17 @@
+{
+  "name": "msg91-zoho-mail-reports",
+  "version": "1.0.0",
+  "description": "Zoho Mail port of ../Code.gs - polls a labeled inbox for MSG91 report zips/CSVs, splits by customer, and replies with per-file plus a merged consolidated report.",
+  "private": true,
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node bin/run-once.js",
+    "build:catalyst": "node bin/build-catalyst.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "yauzl": "^3.1.3"
+  }
+}

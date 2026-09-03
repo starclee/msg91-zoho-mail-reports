@@ -1,0 +1,10 @@
+{
+  "deployment": {
+    "name": "msg91-report-cron",
+    "stack": "node18",
+    "type": "cron"
+  },
+  "execution": {
+    "main": "index.js"
+  }
+}

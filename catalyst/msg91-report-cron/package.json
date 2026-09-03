@@ -1,0 +1,7 @@
+{
+  "name": "msg91-report-cron",
+  "main": "index.js",
+  "dependencies": {
+    "yauzl": "^3.1.3"
+  }
+}

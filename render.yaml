@@ -1,0 +1,47 @@
+# Render Blueprint - lets Render auto-configure the Cron Job from this
+# repo instead of clicking through the dashboard by hand. Secrets
+# (sync: false) still have to be typed into the Render dashboard yourself
+# after the first deploy - they're deliberately never written to this file
+# or committed to git.
+services:
+  - type: cron
+    name: msg91-zoho-report-cron
+    runtime: node
+    # Render Cron Jobs don't have a free tier as of writing - check current
+    # pricing on your Render dashboard and pick the smallest plan that's
+    # actually offered for cron jobs.
+    plan: starter
+    # Every 10 minutes, same cadence as CONFIG.pollIntervalMinutes in the
+    # original ../Code.gs. Adjust to taste (cron syntax: min hour dom mon dow).
+    schedule: "*/10 * * * *"
+    buildCommand: npm install
+    startCommand: node bin/run-once.js
+    envVars:
+      - key: ZOHO_CLIENT_ID
+        sync: false
+      - key: ZOHO_CLIENT_SECRET
+        sync: false
+      - key: ZOHO_REFRESH_TOKEN
+        sync: false
+      - key: ZOHO_ACCOUNTS_BASE_URL
+        value: https://accounts.zoho.com
+      - key: ZOHO_MAIL_BASE_URL
+        value: https://mail.zoho.com
+      - key: ZOHO_ACCOUNT_ID
+        sync: false
+      - key: ZOHO_FROM_ADDRESS
+        sync: false
+      - key: ZOHO_TRIGGER_LABEL
+        value: MSG91-Reports
+      - key: ZOHO_PROCESSED_LABEL
+        value: MSG91-Reports-Processed
+      - key: ZOHO_ERROR_LABEL
+        value: MSG91-Reports-Error
+      - key: ZOHO_POLL_BATCH_SIZE
+        value: "20"
+      - key: ZOHO_NOTIFY_EMAIL
+        sync: false
+      - key: CLIQ_ENABLED
+        value: "false"
+      - key: CLIQ_WEBHOOK_URL
+        sync: false
