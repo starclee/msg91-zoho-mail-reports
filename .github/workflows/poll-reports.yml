@@ -1,0 +1,40 @@
+name: Poll MSG91 reports
+
+on:
+  schedule:
+    # Every 10 minutes, same cadence as CONFIG.pollIntervalMinutes in the
+    # original ../Code.gs. GitHub's schedule trigger is best-effort, not
+    # exact - under load a run can start a few minutes late.
+    - cron: "*/10 * * * *"
+  # Lets you trigger a run by hand from the Actions tab, useful for testing.
+  workflow_dispatch:
+
+jobs:
+  poll:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - run: npm ci
+
+      - run: node bin/run-once.js
+        env:
+          ZOHO_CLIENT_ID: ${{ secrets.ZOHO_CLIENT_ID }}
+          ZOHO_CLIENT_SECRET: ${{ secrets.ZOHO_CLIENT_SECRET }}
+          ZOHO_REFRESH_TOKEN: ${{ secrets.ZOHO_REFRESH_TOKEN }}
+          ZOHO_ACCOUNTS_BASE_URL: ${{ vars.ZOHO_ACCOUNTS_BASE_URL || 'https://accounts.zoho.com' }}
+          ZOHO_MAIL_BASE_URL: ${{ vars.ZOHO_MAIL_BASE_URL || 'https://mail.zoho.com' }}
+          ZOHO_ACCOUNT_ID: ${{ secrets.ZOHO_ACCOUNT_ID }}
+          ZOHO_FROM_ADDRESS: ${{ secrets.ZOHO_FROM_ADDRESS }}
+          ZOHO_TRIGGER_LABEL: ${{ vars.ZOHO_TRIGGER_LABEL || 'MSG91-Reports' }}
+          ZOHO_PROCESSED_LABEL: ${{ vars.ZOHO_PROCESSED_LABEL || 'MSG91-Reports-Processed' }}
+          ZOHO_ERROR_LABEL: ${{ vars.ZOHO_ERROR_LABEL || 'MSG91-Reports-Error' }}
+          ZOHO_POLL_BATCH_SIZE: ${{ vars.ZOHO_POLL_BATCH_SIZE || '20' }}
+          ZOHO_NOTIFY_EMAIL: ${{ secrets.ZOHO_NOTIFY_EMAIL }}
+          CLIQ_ENABLED: ${{ vars.CLIQ_ENABLED || 'false' }}
+          CLIQ_WEBHOOK_URL: ${{ secrets.CLIQ_WEBHOOK_URL }}

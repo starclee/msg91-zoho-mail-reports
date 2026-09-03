@@ -104,15 +104,63 @@ Mail filter rule with a "Tag" action, matching however your Gmail filter
 did by sender/subject, is the direct equivalent of the setup step in the
 Gmail version's own README).
 
-### 5. Run it
+### 5. Run it locally (to test, before scheduling it anywhere)
 
 ```
 npm install
 npm start          # one poll cycle
 ```
 
-Schedule `npm start` (or `node bin/run-once.js`) however you'd schedule
-any script - see "Architecture" above.
+### 6. Schedule it
+
+**Option A - GitHub Actions (free, recommended).** This repo already has
+`.github/workflows/poll-reports.yml`, which runs `bin/run-once.js` every
+10 minutes on GitHub's own runners - no separate hosting account needed.
+
+- GitHub Actions' free tier is 2,000 minutes/month on a **private** repo,
+  or **unlimited** on a **public** one. At a 10-minute cadence this repo
+  is public (no secrets are ever in the code - they're all in the
+  env vars below) specifically to stay under that budget; if you'd rather
+  keep it private, either widen the cron interval (e.g. `*/30 * * * *`
+  comfortably fits the 2,000-minute budget) or expect to pay for extra
+  minutes past it.
+- It's best-effort timing, not exact - a run can start a few minutes late
+  under GitHub's load. A schedule also auto-disables after 60 days with
+  zero commits to the repo (a stale-repo safeguard on GitHub's side) -
+  push anything occasionally, or use `workflow_dispatch` (already wired
+  up - "Run workflow" button on the Actions tab) to nudge it back on.
+- **Set the secrets** the workflow references: repo → **Settings** →
+  **Secrets and variables** → **Actions** → **New repository secret**,
+  one each for `ZOHO_CLIENT_ID`, `ZOHO_CLIENT_SECRET`,
+  `ZOHO_REFRESH_TOKEN`, `ZOHO_ACCOUNT_ID`, `ZOHO_FROM_ADDRESS`,
+  `ZOHO_NOTIFY_EMAIL`, and (if using Cliq) `CLIQ_WEBHOOK_URL`. The
+  non-secret ones (`ZOHO_TRIGGER_LABEL` etc.) have defaults baked into the
+  workflow and only need a **Variables** entry if you want to override
+  them.
+- Or via the `gh` CLI, run from this directory (values stay local to your
+  terminal, never pasted into chat):
+  ```
+  gh secret set ZOHO_CLIENT_ID
+  gh secret set ZOHO_CLIENT_SECRET
+  gh secret set ZOHO_REFRESH_TOKEN
+  gh secret set ZOHO_ACCOUNT_ID
+  gh secret set ZOHO_FROM_ADDRESS
+  gh secret set ZOHO_NOTIFY_EMAIL
+  gh secret set CLIQ_WEBHOOK_URL   # only if CLIQ_ENABLED
+  ```
+  (each prompts for the value on stdin).
+
+**Option B - Render Cron Job (paid, ~$1/month minimum).** `render.yaml`
+in this repo is a Render Blueprint - **New +** → **Blueprint** on
+[dashboard.render.com](https://dashboard.render.com), point it at this
+repo, and Render sets up the Cron Job from that file. Render's Cron Jobs
+don't have a free tier - check current pricing before deploying. Fill in
+the same secrets under the service's **Environment** tab.
+
+**Option C - anywhere else.** Any VM/server you control (Windows Task
+Scheduler, cron, a Catalyst AppSail container) running
+`node bin/run-once.js` on a timer works the same way - populate `.env`
+there instead of platform secrets.
 
 ## What's different from the Gmail version
 
