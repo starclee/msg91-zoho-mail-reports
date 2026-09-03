@@ -56,7 +56,21 @@ try {
 }
 
 if (-not $tokenResponse.refresh_token) {
-  Write-Host "No refresh_token in the response - the code may have expired. Generate a fresh one and re-run." -ForegroundColor Red
+  switch ($tokenResponse.error) {
+    "invalid_client" {
+      Write-Host "invalid_client - the Client ID/Secret don't match what $AccountsHost expects. Either:" -ForegroundColor Red
+      Write-Host "  - one of them was mistyped/mis-pasted (re-copy both from api-console.zoho.com), or"
+      Write-Host "  - your Zoho account isn't on the $AccountsHost datacenter - check the URL you use to log"
+      Write-Host "    into Zoho Mail (mail.zoho.in / mail.zoho.eu / etc.) and pass the matching host, e.g.:"
+      Write-Host "    .\get-zoho-tokens.ps1 -AccountsHost accounts.zoho.in -MailHost mail.zoho.in"
+    }
+    "invalid_code" {
+      Write-Host "invalid_code - the authorization code already expired or was already used (each code is single-use). Generate a fresh one on the Generate Code tab and re-run immediately." -ForegroundColor Red
+    }
+    default {
+      Write-Host "Zoho returned an error - see the raw response below." -ForegroundColor Red
+    }
+  }
   $tokenResponse | ConvertTo-Json
   exit 1
 }
