@@ -198,8 +198,25 @@ async function replyAll(folderId, messageId, { subject, content }) {
   });
 }
 
+// Sends a fresh (non-reply) email - used only for pipeline error alerts to
+// CONFIG.notifyEmail, mirroring notify_() in ../../Code.gs. Everything else
+// in this module replies into an existing thread instead.
+async function sendMail({ toAddress, subject, content }) {
+  await apiJson('/messages', {
+    method: 'POST',
+    body: JSON.stringify({
+      fromAddress: CONFIG.fromAddress,
+      toAddress,
+      subject,
+      content,
+      mailFormat: 'plaintext',
+    }),
+  });
+}
+
 module.exports = {
   getOrCreateLabelId,
+  sendMail,
   applyLabel,
   removeLabel,
   findUnprocessedMessages,

@@ -181,17 +181,34 @@ async function checkForNewReports() {
         await Promise.all(messageIds.map((id) => zohoMail.applyLabel(id, processedLabelId)));
       } else {
         await Promise.all(messageIds.map((id) => zohoMail.applyLabel(id, errorLabelId)));
-        await notifyCliq(
-          'No zip/CSV report found - thread had ' + threadMessages.length + ' message(s) matching ' + CONFIG.triggerLabel
+        await alertOnError(
+          'No zip/CSV report found in email',
+          'A thread with ' + threadMessages.length + ' message(s) matched the ' + CONFIG.triggerLabel +
+            ' tag but no .zip/.csv attachment was found on any of them.'
         );
       }
     } catch (err) {
       await Promise.all(messageIds.map((id) => zohoMail.applyLabel(id, errorLabelId)));
-      console.error('Report extraction failed for thread:', err);
+      await alertOnError('Report extraction failed', String(err));
     }
   }
 
   return threads.length;
+}
+
+// Alerts on a per-thread failure both ways, mirroring notify_() (email) and
+// notifyCliq_() (Cliq) in the Gmail version's Code.gs - unlike those, a
+// failure to send the alert itself is only logged, not thrown, so one bad
+// notification never masks the underlying error or aborts the rest of the
+// poll cycle.
+async function alertOnError(subject, body) {
+  console.error(subject + ': ' + body);
+  await notifyCliq('*' + subject + '*\n' + body).catch((err) =>
+    console.error('Cliq alert failed:', err)
+  );
+  await zohoMail
+    .sendMail({ toAddress: CONFIG.notifyEmail, subject, content: body })
+    .catch((err) => console.error('Error-notification email failed:', err));
 }
 
 module.exports = { checkForNewReports };

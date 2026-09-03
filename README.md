@@ -175,6 +175,34 @@ Scheduler, cron, a Catalyst AppSail container) running
 `node bin/run-once.js` on a timer works the same way - populate `.env`
 there instead of platform secrets.
 
+### 7. Verifying it's actually running, and finding out about failures
+
+This is the equivalent of Apps Script's **Executions** tab, for the
+GitHub Actions path:
+
+- **Confirm the schedule itself is firing**, not just manual runs: on the
+  repo's **Actions** tab, use the **Event** filter dropdown and pick
+  `schedule` - a run only shows up there once the 10-minute trigger has
+  actually fired at least once (can take a few minutes past the mark;
+  GitHub's cron trigger is best-effort, not exact).
+- **Logs**: click any run → the `poll` job → expand "Run
+  node bin/run-once.js" for the full console output - same thing
+  `gh run view <run-id> --log` prints.
+- **At-a-glance pass/fail**: green ✓ vs. red ✗ in the run list.
+- **Get emailed on failure** (equivalent to Apps Script's uncaught-error
+  behavior): go to
+  [github.com/settings/notifications](https://github.com/settings/notifications)
+  → **Actions** section → enable failure notifications for your account.
+  This covers failures GitHub itself sees (the whole `node bin/run-once.js`
+  process exiting non-zero - e.g. a bad OAuth token).
+- **Per-thread failures** (one bad report shouldn't fail the whole run) are
+  handled separately, inside the script itself: `alertOnError()` in
+  `src/processReports.js` both posts to Cliq (if enabled) and sends an
+  email to `ZOHO_NOTIFY_EMAIL`, mirroring `notify_()`/`notifyCliq_()` in
+  the Gmail version's `Code.gs`. These don't depend on GitHub's own
+  notification settings - they're the same reply-based alerting the Gmail
+  version has always had.
+
 ## What's different from the Gmail version
 
 - **Labels → tags.** Zoho's tags are the non-exclusive analog of Gmail
